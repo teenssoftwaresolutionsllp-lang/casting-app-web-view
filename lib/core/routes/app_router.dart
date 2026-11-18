@@ -48,6 +48,7 @@ import '../../features/stories/presentation/pages/story_upload_screen.dart';
 import '../../features/home/data/repository/home_repository.dart';
 import '../../features/live_stats/presentation/pages/live_stats_screen.dart';
 import '../../features/messages/data/repository/messages_repository.dart';
+import '../../features/support/presentation/pages/support_agent_screen.dart';
 import '../../core/di/injection_container.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -261,6 +262,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.liveStats,
       builder: (_, __) => const LiveStatsScreen(),
+    ),
+
+    // =========================================================
+    // TREEKO SUPPORT AGENT SCREEN
+    // =========================================================
+    GoRoute(
+      path: AppRoutes.support,
+      builder: (_, __) => const SupportAgentScreen(),
     ),
 
     // =========================================================
