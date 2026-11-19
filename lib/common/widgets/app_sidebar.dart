@@ -319,6 +319,14 @@ class AppSidebar extends StatelessWidget {
                       context.push(AppRoutes.liveStats);
                     },
                   ),
+                  buildSectionItem(
+                    icon: Icons.support_agent_rounded,
+                    label: 'AI Assistant',
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      context.push(AppRoutes.support);
+                    },
+                  ),
                 ],
               ),
             ),

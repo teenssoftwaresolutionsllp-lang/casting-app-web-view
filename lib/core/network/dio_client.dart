@@ -239,80 +239,18 @@ class DioClient {
               options.headers['Authorization'] =
               'Bearer $token';
             }
-
-            print(
-              "TOKEN EXISTS: ${token != null && token.isNotEmpty}",
-            );
-          } catch (e) {
-            print(
-              "TOKEN ERROR: $e",
-            );
-          }
-
-          print("REQUEST URL: ${options.uri}");
-          print("REQUEST METHOD: ${options.method}");
-          print("REQUEST HEADERS: ${options.headers}");
-          print("REQUEST BODY: ${options.data}");
+          } catch (_) {}
 
           return handler.next(options);
         },
 
         onResponse: (response, handler) {
-          print(
-            "RESPONSE STATUS: ${response.statusCode}",
-          );
-
-          print(
-            "RESPONSE DATA: ${response.data}",
-          );
-
           return handler.next(response);
         },
 
         onError: (DioException error, handler) {
-          print("==============================");
-          print("DIO ERROR");
-          print("==============================");
-
-          print(
-            "URL: ${error.requestOptions.uri}",
-          );
-
-          print(
-            "METHOD: ${error.requestOptions.method}",
-          );
-
-          print(
-            "REQUEST DATA: ${error.requestOptions.data}",
-          );
-
-          print(
-            "STATUS: ${error.response?.statusCode}",
-          );
-
-          print(
-            "SERVER RESPONSE: ${error.response?.data}",
-          );
-
-          print(
-            "ERROR MESSAGE: ${error.message}",
-          );
-
-          print("==============================");
-
           return handler.next(error);
         },
-      ),
-    );
-
-    _dio.interceptors.add(
-      LogInterceptor(
-        request: true,
-        requestHeader: true,
-        requestBody: true,
-        responseHeader: true,
-        responseBody: true,
-        error: true,
       ),
     );
   }

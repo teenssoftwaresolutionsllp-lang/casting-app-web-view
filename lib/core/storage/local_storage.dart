@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'secure_token_store.dart';
 
 class LocalStorage {
   static const String _keyToken = 'auth_token';
@@ -16,16 +17,23 @@ class LocalStorage {
 
   static LocalStorage? _instance;
   static SharedPreferences? _prefs;
+  static SecureTokenStore? _tokenStore;
 
   LocalStorage._();
 
   /// Initialize LocalStorage only once.
-  static Future<void> init() async {
+  static Future<void> init({SecureTokenStore? tokenStore}) async {
     if (_instance != null && _prefs != null) {
       return;
     }
 
-    _prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
+    final secureTokenStore =
+        tokenStore ?? SecureTokenStore(FlutterSecureTokenBackend());
+    await secureTokenStore.initialize(legacyToken: prefs.getString(_keyToken));
+    await prefs.remove(_keyToken);
+    _prefs = prefs;
+    _tokenStore = secureTokenStore;
     _instance = LocalStorage._();
   }
 
@@ -42,11 +50,12 @@ class LocalStorage {
   }
 
   Future<void> saveToken(String token) async {
-    await _prefs!.setString(_keyToken, token);
+    await _tokenStore!.save(token);
+    await _prefs!.remove(_keyToken);
   }
 
   String? getToken() {
-    return _prefs!.getString(_keyToken);
+    return _tokenStore!.token;
   }
 
   Future<void> saveUserEmail(String email) async {
@@ -199,11 +208,17 @@ class LocalStorage {
 
   Future<void> clearAll() async {
     final uid = getUserId();
+    var secureTokenClearFailed = false;
+    try {
+      await _tokenStore?.clear();
+    } catch (_) {
+      secureTokenClearFailed = true;
+    }
+    await _prefs?.remove(_keyToken);
     if (uid != null && uid.trim().isNotEmpty) {
       await _prefs?.remove('${_keyFollowingUserIds}_${uid.trim()}');
     }
     await _prefs?.remove(_keyFollowingUserIds);
-    await _prefs?.remove(_keyToken);
     await _prefs?.remove(_keyUserEmail);
     await _prefs?.remove(_keyUserName);
     await _prefs?.remove(_keyUserId);
@@ -215,6 +230,9 @@ class LocalStorage {
     await _prefs?.remove(_keyReadChatIds);
     await _prefs?.remove(_keyUnreadChatIds);
     await _prefs?.remove(_keyLastReadMessages);
+    if (secureTokenClearFailed) {
+      throw StateError('Secure authentication token cleanup failed.');
+    }
   }
 
   static const String _keyRegisteredPhones = 'registered_phone_numbers';
@@ -239,6 +257,8 @@ class LocalStorage {
   bool hasToken() {
     return getToken() != null;
   }
+
+  bool hasExpiredToken() => _tokenStore!.hasExpiredToken;
 
   // =========================================================
   // CHAT READ / UNREAD PERSISTENCE
